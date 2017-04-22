@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<process version="5.3.013">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="5.3.013" expanded="true" name="Process">
+    <process expanded="true">
+      <operator activated="true" class="read_csv" compatibility="5.3.013" expanded="true" height="60" name="ReadMovies" width="90" x="45" y="30">
+        <parameter key="csv_file" value="/Users/inanc/Desktop/rapidminerData/Recitation8/movies.csv"/>
+        <parameter key="column_separators" value=","/>
+        <parameter key="first_row_as_names" value="false"/>
+        <list key="annotations">
+          <parameter key="0" value="Name"/>
+        </list>
+        <parameter key="encoding" value="UTF-8"/>
+        <list key="data_set_meta_data_information">
+          <parameter key="0" value="movieId.true.integer.id"/>
+          <parameter key="1" value="title.true.polynominal.attribute"/>
+          <parameter key="2" value="genres.true.polynominal.attribute"/>
+        </list>
+      </operator>
+      <operator activated="true" class="read_csv" compatibility="5.3.013" expanded="true" height="60" name="ReadRatings" width="90" x="45" y="120">
+        <parameter key="csv_file" value="/Users/inanc/Desktop/rapidminerData/Recitation8/ratings.csv"/>
+        <parameter key="column_separators" value=","/>
+        <parameter key="first_row_as_names" value="false"/>
+        <list key="annotations">
+          <parameter key="0" value="Name"/>
+        </list>
+        <parameter key="encoding" value="UTF-8"/>
+        <list key="data_set_meta_data_information">
+          <parameter key="0" value="userId.true.integer.attribute"/>
+          <parameter key="1" value="movieId.true.integer.id"/>
+          <parameter key="2" value="rating.true.real.attribute"/>
+          <parameter key="3" value="timestamp.false.integer.attribute"/>
+        </list>
+      </operator>
+      <operator activated="true" class="join" compatibility="5.3.013" expanded="true" height="76" name="Join" width="90" x="246" y="30">
+        <list key="key_attributes"/>
+      </operator>
+      <operator activated="true" class="set_role" compatibility="5.3.013" expanded="true" height="76" name="Set Role" width="90" x="45" y="210">
+        <parameter key="attribute_name" value="title"/>
+        <parameter key="target_role" value="item identification"/>
+        <list key="set_additional_roles"/>
+      </operator>
+      <operator activated="true" class="set_role" compatibility="5.3.013" expanded="true" height="76" name="Set Role (2)" width="90" x="179" y="210">
+        <parameter key="attribute_name" value="userId"/>
+        <parameter key="target_role" value="user identification"/>
+        <list key="set_additional_roles"/>
+      </operator>
+      <operator activated="true" class="set_role" compatibility="5.3.013" expanded="true" height="76" name="Set Role (3)" width="90" x="380" y="210">
+        <parameter key="attribute_name" value="rating"/>
+        <parameter key="target_role" value="label"/>
+        <list key="set_additional_roles"/>
+      </operator>
+      <operator activated="true" class="split_data" compatibility="5.3.013" expanded="true" height="94" name="Split Data" width="90" x="45" y="300">
+        <enumeration key="partitions">
+          <parameter key="ratio" value="0.8"/>
+          <parameter key="ratio" value="0.2"/>
+        </enumeration>
+      </operator>
+      <operator activated="true" class="irbrecommender:user_k-NN_rp" compatibility="5.1.001" expanded="true" height="76" name="User k-NN" width="90" x="246" y="300">
+        <parameter key="k" value="10"/>
+      </operator>
+      <operator activated="true" class="irbrecommender:apply_model_rp" compatibility="5.1.001" expanded="true" height="76" name="Apply Model" width="90" x="112" y="435"/>
+      <operator activated="true" class="irbrecommender:performance_rating_prediction" compatibility="5.1.001" expanded="true" height="76" name="Performance" width="90" x="246" y="435"/>
+      <connect from_op="ReadMovies" from_port="output" to_op="Join" to_port="left"/>
+      <connect from_op="ReadRatings" from_port="output" to_op="Join" to_port="right"/>
+      <connect from_op="Join" from_port="join" to_op="Set Role" to_port="example set input"/>
+      <connect from_op="Set Role" from_port="example set output" to_op="Set Role (2)" to_port="example set input"/>
+      <connect from_op="Set Role (2)" from_port="example set output" to_op="Set Role (3)" to_port="example set input"/>
+      <connect from_op="Set Role (3)" from_port="example set output" to_op="Split Data" to_port="example set"/>
+      <connect from_op="Split Data" from_port="partition 1" to_op="User k-NN" to_port="example set"/>
+      <connect from_op="Split Data" from_port="partition 2" to_op="Apply Model" to_port="query set"/>
+      <connect from_op="User k-NN" from_port="Model" to_op="Apply Model" to_port="Model"/>
+      <connect from_op="Apply Model" from_port="result set" to_op="Performance" to_port="predictions"/>
+      <connect from_op="Performance" from_port="performance" to_port="result 1"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+    </process>
+  </operator>
+</process>
